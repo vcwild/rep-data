@@ -1,5 +1,35 @@
-# Reproducible Research: Peer Assessment 1"
+Reproducible Research Data
+================
 
+> The overall goal of this project is to use personal activity monitoring data of a step counter throughout the day in 5-minute intervals between October and November - 2012, and build a literate exploratory data analysis aimed at reproducibility.
+
+## Tools Used
+
+  - R language compiler
+  - R base graphic devices
+  - Tidyverse library packages
+  - RMarkdown library package
+  - Knitr library package
+
+## Files
+
+  - **Raw data set**: [Activity Monitoring Data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)
+  - **[CODEBOOK](https://github.com/vcwild/rep-data/blob/master/PA1_template.md)**:
+    step-by-step book explaining the code
+    processing.
+  - **[Figures](https://github.com/vcwild/rep-data/tree/master/PA1_template_files/figure-html)**:
+    the plotted images
+  - **[PA1_template.Rmd](https://github.com/vcwild/rep-data/blob/master/PA1_template.Rmd)**: the script to compile the project from source
+
+## Build from Source
+
+Inside the project root folder, execute the following
+
+```
+R
+library(rmarkdown)
+rmarkdown::render("PA1_template.Rmd", "html_document")
+```
 # CODEBOOK
 
 ## Set the libraries to use and study reproducibility
