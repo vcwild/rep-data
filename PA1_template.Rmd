@@ -9,6 +9,7 @@ output:
 
 ```{r}
 library(tidyverse)
+library(RColorBrewer)
 set.seed(144)
 ```
 
@@ -34,15 +35,6 @@ activity %>%
     
 ```
 
-Impute 0 to NAs
-
-```{r}
-iactivity <- activity %>%
-    mutate(
-        steps = ifelse(is.na(steps), 0, steps)
-    )
-iactivity
-```
 
 
 ## What is mean total number of steps taken per day?
@@ -52,7 +44,8 @@ mean_steps_day <- activity %>%
     group_by(date) %>%
     drop_na() %>% 
     summarize(
-        mean.steps = mean(steps)
+        mean.steps = mean(steps),
+        interval = sum(interval)
     )
 
 mean_steps_day
@@ -60,6 +53,7 @@ mean_steps_day
 ggplot(mean_steps_day, aes(mean.steps)) +
     geom_histogram(bins = 30) +
     labs(
+        title = "Sum of mean steps",
         x = "Steps taken",
         y = "Count"
     ) +
@@ -68,6 +62,7 @@ ggplot(mean_steps_day, aes(mean.steps)) +
 ggplot(mean_steps_day, aes(date, mean.steps)) +
     geom_bar(stat = "identity") +
     labs(
+        title = "Mean of steps",
         x = "Date",
         y = "Mean steps"
     ) +
@@ -80,7 +75,8 @@ median_steps_day <- activity %>%
     drop_na() %>%
     filter(steps != 0) %>% 
     summarize(
-        median.steps = median(steps)
+        median.steps = median(steps),
+        interval = sum(interval)
     )
 
 median_steps_day
@@ -88,6 +84,7 @@ median_steps_day
 ggplot(median_steps_day, aes(median.steps)) +
     geom_histogram(bins = 30) +
     labs(
+        title = "Sum of median steps",
         x = "Steps taken",
         y = "Count"
     ) +
@@ -96,6 +93,7 @@ ggplot(median_steps_day, aes(median.steps)) +
 ggplot(median_steps_day, aes(date, median.steps)) +
     geom_bar(stat = "identity") +
     labs(
+        title = "Median of steps",
         x = "Date",
         y = "Median steps"
     ) +
@@ -107,7 +105,31 @@ ggplot(median_steps_day, aes(date, median.steps)) +
 ## What is the average daily activity pattern?
 
 ```{r}
+mean_interval <- tidyactivity %>% 
+    group_by(interval) %>% 
+    summarize(
+        mean.steps = mean(steps)
+    )
 
+mean_interval
+
+ggplot(mean_interval, aes(interval, mean.steps)) +
+    geom_line() +
+    labs(
+        title = "Average daily activity",
+        x = "Time (minutes)",
+        y = "Global mean steps",
+        color = ""
+    ) +
+    theme_minimal()
+```
+
+## Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+mean_interval %>% 
+    group_by(interval) %>% 
+    arrange(desc(mean.steps))
 ```
 
 
@@ -120,16 +142,147 @@ mean_act <- mean(activity$steps, na.rm = TRUE)
 mean_act
 ```
 
-Mean of `r mean_act` steps for NAs removed.
+
+
+Imputing mean of that day on missing values
 
 ```{r}
-mean_iact <- iactivity %>% 
-    summarize(
-    mean = sum(steps)/n()
-    )
-mean_iact[[1]]
+iactivity <- activity %>%
+    mutate(steps = ifelse(is.na(steps), 0, steps)) %>% 
+    group_by(date) %>% 
+    mutate(
+        steps = ifelse(steps==0, mean(steps), steps)
+    ) %>%
+    ungroup()
+ 
+mean_iact <- mean(iactivity$steps)
+mean_iact
 ```
 
-Mean of `r mean_iact[[1]]` steps for imputed 0s
+## What is the impact of imputing missing data on the estimates of the total daily number of steps?
+Mean of `r mean_act` steps for NAs removed.
+Mean of `r mean_iact` steps for imputed mean.
+
+## Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? 
+
+```{r}
+imean_steps_day <- iactivity %>%
+    group_by(date) %>%
+    summarize(
+        mean.steps = mean(steps),
+        interval = sum(interval)
+    )
+
+imean_steps_day
+
+ggplot(imean_steps_day, aes(mean.steps)) +
+    geom_histogram(bins = 30) +
+    labs(
+        title = "Sum of mean steps",
+        x = "Steps taken",
+        y = "Count"
+    ) +
+    theme_minimal()
+
+ggplot(imean_steps_day, aes(date, mean.steps)) +
+    geom_bar(stat = "identity") +
+    labs(
+        title = "Mean of steps",
+        x = "Date",
+        y = "Mean steps"
+    ) +
+    theme_minimal()
+```
+
+```{r}
+imedian_steps_day <- iactivity %>% 
+    group_by(date) %>%
+    summarize(
+        median.steps = median(steps),
+        interval = sum(interval)
+    )
+
+imedian_steps_day
+
+ggplot(imedian_steps_day, aes(median.steps)) +
+    geom_histogram(bins = 30) +
+    labs(
+        title = "Sum of median steps",
+        x = "Steps taken",
+        y = "Count"
+    ) +
+    theme_minimal()
+
+ggplot(imedian_steps_day, aes(date, median.steps)) +
+    geom_bar(stat = "identity") +
+    labs(
+        title = "Median of steps",
+        x = "Date",
+        y = "Median steps"
+    ) +
+    theme_minimal()
+```
+
+Inserting imputed values allowed to remove `drop_na` and to remove `filter !=0` and still get significant median values.
+
+---
+
+Joining datasets and plotting mean differences
+
+```{r}
+# Checking dimensions
+dim(mean_steps_day)
+dim(imean_steps_day)
+
+```
+
+```{r}
+
+# Joining datasets and pivoting into one mean column
+join_mean <- left_join(imean_steps_day, mean_steps_day, by = c("date", "interval"))
+
+meta <- pivot_longer(data = join_mean, c(`mean.steps.x`, `mean.steps.y`), names_to = "group", values_to="mean.steps")
+
+group_mean <- meta %>%
+    mutate(
+        group = ifelse(group == "mean.steps.x", "imean", "mean")
+    ) %>% 
+    drop_na()
+
+# Plotting results
+
+ggplot(group_mean, aes(date, mean.steps, group = group, fill = group)) +
+    geom_bar(stat = "identity") +
+    labs(
+        title = "Mean difference between imputed and non-imputed datasets",
+        x = "Date",
+        y = "Mean of steps"
+    ) + 
+    theme_minimal()
+```
+
+The imputed data received considerable mean increase.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+day <- weekdays(activity$date)
+daylevel <- vector()
+for (i in 1:nrow(activity)) {
+    if (day[i] == "Saturday") {
+        daylevel[i] <- "Weekend"
+    } else if (day[i] == "Sunday") {
+        daylevel[i] <- "Weekend"
+    } else {
+        daylevel[i] <- "Weekday"
+    }
+}
+activity$daylevel <- daylevel
+activity$daylevel <- factor(activity$daylevel)
+
+stepsByDay <- aggregate(steps ~ interval + daylevel, data = activity, mean)
+names(stepsByDay) <- c("interval", "daylevel", "steps")
+
+ggplot()
+```
+
