@@ -283,6 +283,16 @@ activity$daylevel <- factor(activity$daylevel)
 stepsByDay <- aggregate(steps ~ interval + daylevel, data = activity, mean)
 names(stepsByDay) <- c("interval", "daylevel", "steps")
 
-ggplot()
+stepsByDay
+
+ggplot(stepsByDay, aes(interval, steps, group = daylevel, color = daylevel)) + 
+    facet_grid(daylevel ~ .) +
+    geom_line() +
+    labs(
+        x = "Time (mins)",
+        y = "Steps",
+        color = "Type"
+    ) +
+    theme_bw()
 ```
 
