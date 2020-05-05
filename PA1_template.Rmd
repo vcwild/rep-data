@@ -5,21 +5,131 @@ output:
     keep_md: true
 ---
 
+## Set the libraries to use and study reproducibility
+
+```{r}
+library(tidyverse)
+set.seed(144)
+```
+
+
 
 ## Loading and preprocessing the data
 
+```{r, cache=TRUE}
+# unzip("activity.zip")
+# file.remove("activity.zip")
+```
+
+```{r}
+activity <- read_csv("activity.csv")
+glimpse(activity)
+```
+
+Count number of NAs
+
+```{r}
+activity %>%
+    summarize_all(funs(sum(is.na(.))))
+    
+```
+
+Impute 0 to NAs
+
+```{r}
+iactivity <- activity %>%
+    mutate(
+        steps = ifelse(is.na(steps), 0, steps)
+    )
+iactivity
+```
 
 
 ## What is mean total number of steps taken per day?
+
+```{r}
+mean_steps_day <- activity %>%
+    group_by(date) %>%
+    drop_na() %>% 
+    summarize(
+        mean.steps = mean(steps)
+    )
+
+mean_steps_day
+
+ggplot(mean_steps_day, aes(mean.steps)) +
+    geom_histogram(bins = 30) +
+    labs(
+        x = "Steps taken",
+        y = "Count"
+    ) +
+    theme_minimal()
+
+ggplot(mean_steps_day, aes(date, mean.steps)) +
+    geom_bar(stat = "identity") +
+    labs(
+        x = "Date",
+        y = "Mean steps"
+    ) +
+    theme_minimal()
+```
+
+```{r}
+median_steps_day <- activity %>% 
+    group_by(date) %>% 
+    drop_na() %>%
+    filter(steps != 0) %>% 
+    summarize(
+        median.steps = median(steps)
+    )
+
+median_steps_day
+
+ggplot(median_steps_day, aes(median.steps)) +
+    geom_histogram(bins = 30) +
+    labs(
+        x = "Steps taken",
+        y = "Count"
+    ) +
+    theme_minimal()
+
+ggplot(median_steps_day, aes(date, median.steps)) +
+    geom_bar(stat = "identity") +
+    labs(
+        x = "Date",
+        y = "Median steps"
+    ) +
+    theme_minimal()
+```
 
 
 
 ## What is the average daily activity pattern?
 
+```{r}
+
+```
 
 
 ## Imputing missing values
 
+Compare means
 
+```{r}
+mean_act <- mean(activity$steps, na.rm = TRUE)
+mean_act
+```
+
+Mean of `r mean_act` steps for NAs removed.
+
+```{r}
+mean_iact <- iactivity %>% 
+    summarize(
+    mean = sum(steps)/n()
+    )
+mean_iact[[1]]
+```
+
+Mean of `r mean_iact[[1]]` steps for imputed 0s
 
 ## Are there differences in activity patterns between weekdays and weekends?
