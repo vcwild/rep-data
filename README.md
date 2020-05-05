@@ -1,9 +1,6 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1"
+
+# CODEBOOK
 
 ## Set the libraries to use and study reproducibility
 
