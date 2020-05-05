@@ -105,7 +105,8 @@ ggplot(median_steps_day, aes(date, median.steps)) +
 ## What is the average daily activity pattern?
 
 ```{r}
-mean_interval <- tidyactivity %>% 
+mean_interval <- activity %>%
+    drop_na() %>% 
     group_by(interval) %>% 
     summarize(
         mean.steps = mean(steps)
@@ -142,8 +143,6 @@ mean_act <- mean(activity$steps, na.rm = TRUE)
 mean_act
 ```
 
-
-
 Imputing mean of that day on missing values
 
 ```{r}
@@ -160,7 +159,7 @@ mean_iact
 ```
 
 ## What is the impact of imputing missing data on the estimates of the total daily number of steps?
-Mean of `r mean_act` steps for NAs removed.
+Mean of `r mean_act` steps for NAs removed.  
 Mean of `r mean_iact` steps for imputed mean.
 
 ## Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? 
@@ -280,12 +279,12 @@ for (i in 1:nrow(activity)) {
 activity$daylevel <- daylevel
 activity$daylevel <- factor(activity$daylevel)
 
-stepsByDay <- aggregate(steps ~ interval + daylevel, data = activity, mean)
-names(stepsByDay) <- c("interval", "daylevel", "steps")
+dailysteps <- aggregate(steps ~ interval + daylevel, data = activity, mean)
+names(dailysteps) <- c("interval", "daylevel", "steps")
 
-stepsByDay
+glimpse(dailysteps)
 
-ggplot(stepsByDay, aes(interval, steps, group = daylevel, color = daylevel)) + 
+ggplot(dailysteps, aes(interval, steps, group = daylevel, color = daylevel)) + 
     facet_grid(daylevel ~ .) +
     geom_line() +
     labs(
